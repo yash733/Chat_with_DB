@@ -1,0 +1,16 @@
+[project]
+name = "chat-db"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "langchain>=0.3.23",
+    "langchain-community>=0.3.21",
+    "langchain-core>=0.3.54",
+    "langchain-groq>=0.3.2",
+    "langchain-ollama>=0.3.2",
+    "langserve>=0.3.1",
+    "python-dotenv>=1.1.0",
+    "streamlit>=1.44.1",
+]
