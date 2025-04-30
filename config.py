@@ -1,8 +1,9 @@
 from configparser import ConfigParser
 import os, sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 class Config:
-    def __inti__(self):
+    def __init__(self):
         self.config = ConfigParser()
         self.config.read(f'{os.getcwd()}/config.ini')
 
@@ -13,13 +14,10 @@ class Config:
         return  self.config['DEFAULT'].get('RADIO').split(', ')
     
     def get_model(self):
-        print(self.configparser['DEFAULT'].get('MODEL').split(', '))
-        return self.configparser['DEFAULT'].get('MODEL').split(', ')
+        return self.config['DEFAULT'].get('MODEL').split(', ')
     
     def get_groq_model(self):
-        print(self.configparser['DEFAULT'].get('VERSION_GROQ').split(', '))
-        return self.configparser['DEFAULT'].get('VERSION_GROQ').split(', ')
+        return self.config['DEFAULT'].get('VERSION_GROQ').split(', ')
     
     def get_ollama_model(self):
-        print(self.configparser['DEFAULT'].get('VERSION_OLLAMA').split(', '))
-        return self.configparser['DEFAULT'].get('VERSION_OLLAMA').split(', ')
+        return self.config['DEFAULT'].get('VERSION_OLLAMA').split(', ')
