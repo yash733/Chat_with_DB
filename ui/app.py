@@ -40,13 +40,26 @@ if db_selected:
     if db_selected == 'Use SqlLight 3 DataBase- student.db':
         database_ = 'Local_DB'
         
-    else:
+    elif db_selected == 'Connected to your SQL DataBase':
         database_ = 'MySql_DB'
         with st.sidebar:
-            my_sql_host = st.text_input(label='Provide MySQL Host')
-            my_sql_db = st.text_input(label='MySql DataBase')
-            my_sql_user = st.text_input(label='User name')
-            my_sql_pass = st.text_input(label='MySql Password: ', type= 'password')
+            if not st.session_state.user.get('my_sql_pass'):
+                my_sql_host = st.text_input(label='Provide MySQL Host')
+                my_sql_db = st.text_input(label='MySql DataBase')
+                my_sql_user = st.text_input(label='User name')
+                my_sql_pass = st.text_input(label='MySql Password: ', type= 'password')
+                my_sql_button = False
+
+                if my_sql_host and my_sql_db and my_sql_user and my_sql_pass :
+                    if st.button('Proceed', key= 'Mysql') and not my_sql_button:
+                        st.session_state.user.update({'my_sql_host':my_sql_host, 'my_sql_db': my_sql_db,'my_sql_user':my_sql_user,'my_sql_pass':my_sql_pass})
+                        my_sql_button = True
+                        st.rerun()
+            else:
+                with st.expander("Database Details"):
+                    st.write('MySQL Host: ',st.session_state.user.get('my_sql_host'))
+                    st.write('MySql DataBase: ',st.session_state.user.get('my_sql_db'))
+                    st.write('User name: ',st.session_state.user.get('my_sql_user'))
     
     # ----- LLM MODEL ----- #
     with st.sidebar:
@@ -65,7 +78,7 @@ if db_selected:
             button_ = False
             if not button_ and st.button(label= 'Save', key= 'Ollama'):
                 st.session_state.user.update({'model': 'Ollama', 'model_type': model_type})
-                button_ == True
+                button_ = True
                 st.session_state.model_llm = Model().ollama()
         
 
@@ -89,9 +102,21 @@ if db_selected:
         db = db_config(database_)
 
     elif database_ == 'MySql_DB':
-        db = db_config(my_sql_host, my_sql_db, my_sql_user, my_sql_pass)
+        my_sql_host = st.session_state.user.get('my_sql_host')
+        my_sql_db = st.session_state.user.get('my_sql_db')
+        my_sql_user = st.session_state.user.get('my_sql_user')
+        my_sql_pass = st.session_state.user.get('my_sql_pass')
 
-    if st.session_state.model_llm:
+        if not all([my_sql_host, my_sql_db, my_sql_user, my_sql_pass]):
+            st.error("Please provide all MySQL connection details")
+            st.stop()
+        db = db_config(my_sql_host, my_sql_db, my_sql_user, my_sql_pass)
+        
+    if db is None:
+        st.error("Database connection failed. Please check your configuration.")
+        st.stop()
+
+    if st.session_state.model_llm and db:
         
         # ----- Toolkit ----- # calling multiple tools managing sql fucntions
         tollkit = SQLDatabaseToolkit(llm = st.session_state.model_llm, db = db)
@@ -113,9 +138,14 @@ if db_selected:
 
             with st.chat_message('assistant'):
                 streamlit_callback=StreamlitCallbackHandler(st.container())
-                response = agent.run(input= user_query, callbacks=[streamlit_callback], handle_parsing_errors= True)
-                st.session_state.messages.append({"role":"assistant","content":response})
-                st.rerun()
+                try:
+                    response = agent.run(input= user_query, callbacks=[streamlit_callback], handle_parsing_errors= True)
+                    st.session_state.messages.append({"role":"assistant","content":response})
+                except ValueError:
+                    st.error('Error occured, unable to handle parsing')                    
+    
+    else:
+        st.warning("Please ensure both the model and database connection are configured")
 
 else: 
     st.error('Kindly select a database to work with.')
