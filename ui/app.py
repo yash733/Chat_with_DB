@@ -80,6 +80,7 @@ if db_selected:
                 st.session_state.user.update({'model': 'Ollama', 'model_type': model_type})
                 button_ = True
                 st.session_state.model_llm = Model().ollama()
+                st.rerun()
         
 
     # ----- database connection -----#
@@ -110,7 +111,7 @@ if db_selected:
         if not all([my_sql_host, my_sql_db, my_sql_user, my_sql_pass]):
             st.error("Please provide all MySQL connection details")
             st.stop()
-        db = db_config(my_sql_host, my_sql_db, my_sql_user, my_sql_pass)
+        db = db_config(database_, my_sql_host, my_sql_db, my_sql_user, my_sql_pass)
         
     if db is None:
         st.error("Database connection failed. Please check your configuration.")
